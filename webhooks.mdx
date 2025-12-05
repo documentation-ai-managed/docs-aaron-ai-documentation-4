@@ -1,0 +1,168 @@
+---
+title: Webhooks
+description: Set up webhooks for real-time notifications
+---
+
+## Webhook Overview
+
+Webhooks allow Aaron AI to send real-time notifications to your applications when events occur. Use webhooks to automate workflows and keep systems in sync.
+
+<Callout kind="info">Webhooks deliver events as HTTP POST requests to your specified endpoint.</Callout>
+
+## Setting Up Webhooks
+
+<Steps>
+  <Step title="Create Endpoint" icon="server">
+    Set up an HTTP endpoint to receive webhook payloads:
+    ````javascript
+app.post('/webhooks/aaron-ai', (req, res) => {
+  const event = req.body;
+  console.log('Received event:', event.type);
+  res.status(200).send('OK');
+});
+    ````
+  </Step>
+  <Step title="Register Webhook" icon="plus">
+    Register your webhook URL in Aaron AI:
+    ````javascript
+const webhook = await client.webhooks.create({
+  url: 'https://yourapp.com/webhooks/aaron-ai',
+  events: ['document.created', 'document.updated'],
+  secret: 'your_webhook_secret'
+});
+    ````
+  </Step>
+  <Step title="Verify Setup" icon="check-circle">
+    Test your webhook with a sample event:
+    ````bash
+curl -X POST https://yourapp.com/webhooks/aaron-ai \
+  -H "Content-Type: application/json" \
+  -d '{"type": "test", "data": "Hello World"}'
+    ````
+  </Step>
+</Steps>
+
+## Event Types
+
+Aaron AI triggers webhooks for various events:
+
+<Tabs>
+  <Tab title="Document Events" icon="file-text">
+    - `document.created`: New document added
+    - `document.updated`: Document modified
+    - `document.deleted`: Document removed
+    - `document.published`: Document published
+  </Tab>
+  <Tab title="User Events" icon="users">
+    - `user.invited`: User invited to workspace
+    - `user.joined`: User accepted invitation
+    - `user.left`: User left workspace
+  </Tab>
+  <Tab title="Workspace Events" icon="settings">
+    - `workspace.updated`: Workspace settings changed
+    - `team.member_added`: New team member added
+  </Tab>
+</Tabs>
+
+## Security and Verification
+
+Secure your webhooks with signature verification:
+
+<Callout kind="alert">Always verify webhook signatures to prevent spoofing attacks.</Callout>
+
+<CodeGroup tabs="Node.js,Python">
+  ````javascript
+const crypto = require('crypto');
+
+function verifySignature(payload, signature, secret) {
+  const expectedSignature = crypto
+    .createHmac('sha256', secret)
+    .update(payload, 'utf8')
+    .digest('hex');
+  return `sha256=${expectedSignature}` === signature;
+}
+
+// In your webhook handler
+const isValid = verifySignature(
+  JSON.stringify(req.body),
+  req.headers['x-aaron-signature'],
+  process.env.WEBHOOK_SECRET
+);
+if (!isValid) {
+  return res.status(401).send('Invalid signature');
+}
+  ````
+  ````python
+import hmac
+import hashlib
+
+def verify_signature(payload: str, signature: str, secret: str) -> bool:
+    expected = hmac.new(
+        secret.encode('utf-8'),
+        payload.encode('utf-8'),
+        hashlib.sha256
+    ).hexdigest()
+    return f"sha256={expected}" == signature
+
+# In your webhook handler
+payload = request.get_data(as_text=True)
+signature = request.headers.get('X-Aaron-Signature')
+is_valid = verify_signature(payload, signature, os.environ['WEBHOOK_SECRET'])
+if not is_valid:
+    abort(401)
+  ````
+</CodeGroup>
+
+## Handling Webhooks
+
+Process webhook payloads reliably:
+
+<ExpandableGroup>
+  <Expandable title="Idempotency" default-open="false">
+    Use event IDs to handle duplicate deliveries:
+    ````javascript
+const processedEvents = new Set();
+
+if (processedEvents.has(event.id)) {
+  return res.status(200).send('Already processed');
+}
+processedEvents.add(event.id);
+// Process the event
+    ````
+  </Expandable>
+  <Expandable title="Error Handling" default-open="false">
+    Handle failures gracefully:
+    - Return 200 status for successful processing
+    - Log errors for debugging
+    - Implement retry logic for transient failures
+  </Expandable>
+  <Expandable title="Rate Limiting" default-open="false">
+    Implement rate limiting to prevent overload:
+    ````javascript
+const rateLimit = require('express-rate-limit');
+app.use('/webhooks/aaron-ai', rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100 // limit each IP to 100 requests per windowMs
+}));
+    ````
+  </Expandable>
+</ExpandableGroup>
+
+## Best Practices
+
+Follow these webhook best practices:
+
+- Respond quickly to webhook requests
+- Process events asynchronously
+- Store event data for debugging
+- Monitor webhook delivery success
+- Use HTTPS endpoints only
+- Validate payload structure
+
+<Expandable title="Monitoring" default-open="false">
+  Monitor webhook performance:
+  - Track delivery success rates
+  - Log processing times
+  - Alert on failures
+  - Analyze event patterns
+</Expandable>

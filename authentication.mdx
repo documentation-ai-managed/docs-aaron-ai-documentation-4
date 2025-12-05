@@ -1,0 +1,113 @@
+---
+title: Authentication
+description: Learn how to authenticate with Aaron AI API
+---
+
+## Authentication Methods
+
+Aaron AI supports multiple authentication methods to suit different use cases. You can authenticate using API keys for programmatic access or OAuth for user-based authentication.
+
+<Callout kind="info">Always keep your API keys secure and never share them in public repositories.</Callout>
+
+<Tabs>
+  <Tab title="API Key" icon="key">
+    Use API keys for server-to-server authentication:
+    ````javascript
+const client = new AaronAIClient({
+  apiKey: 'your_api_key_here'
+});
+    ````
+    <Expandable title="API Key Security" default-open="false">
+      - Store keys in environment variables
+      - Rotate keys regularly
+      - Use different keys for different environments
+    </Expandable>
+  </Tab>
+  <Tab title="OAuth" icon="user">
+    For user authentication, use OAuth 2.0:
+    ````javascript
+const authUrl = await client.auth.getAuthorizationUrl({
+  redirectUri: 'https://yourapp.com/callback'
+});
+    ````
+    <Expandable title="OAuth Flow" default-open="false">
+      1. Redirect user to authorization URL
+      2. User grants permission
+      3. Receive authorization code
+      4. Exchange code for access token
+    </Expandable>
+  </Tab>
+</Tabs>
+
+## Setting Up Authentication
+
+<Steps>
+  <Step title="Create Account" icon="user-plus">
+    Sign up for an Aaron AI account at the dashboard.
+  </Step>
+  <Step title="Generate API Key" icon="key">
+    Navigate to settings and generate a new API key:
+    ````bash
+    curl -X POST https://api.aaron.ai/v1/keys \
+      -H "Authorization: Bearer your_token" \
+      -d '{"name": "My App Key"}'
+    ````
+  </Step>
+  <Step title="Configure Environment" icon="settings">
+    Set the API key in your environment:
+    ````bash
+export AARON_API_KEY=your_generated_key
+    ````
+  </Step>
+  <Step title="Test Connection" icon="check-circle">
+    Verify your authentication works:
+    ````javascript
+const response = await client.documents.list();
+console.log('Connected successfully:', response.length, 'documents');
+    ````
+  </Step>
+</Steps>
+
+## Token Management
+
+Manage your authentication tokens effectively to maintain security.
+
+<Callout kind="alert">Tokens expire after 30 days. Implement refresh logic in your applications.</Callout>
+
+<CodeGroup tabs="Refresh Token,Revoke Token">
+  ````javascript
+// Refresh an expired token
+const newToken = await client.auth.refresh({
+  refreshToken: 'your_refresh_token'
+});
+  ````
+  ````javascript
+// Revoke a token
+const result = await client.auth.revoke({
+  token: 'token_to_revoke'
+});
+  ````
+</CodeGroup>
+
+## Best Practices
+
+Follow these authentication best practices for secure and reliable access:
+
+- Use HTTPS for all API calls
+- Implement rate limiting on your client side
+- Monitor authentication failures
+- Use separate keys for different applications
+- Regularly audit access logs
+
+<ExpandableGroup>
+  <Expandable title="Troubleshooting" default-open="false">
+    - **Invalid API Key**: Check for typos and ensure the key is active
+    - **Expired Token**: Implement automatic token refresh
+    - **Rate Limited**: Add exponential backoff to your retry logic
+  </Expandable>
+  <Expandable title="Security Guidelines" default-open="false">
+    - Store keys securely using secret management tools
+    - Never commit keys to version control
+    - Use read-only keys when possible
+  </Expandable>
+</ExpandableGroup>

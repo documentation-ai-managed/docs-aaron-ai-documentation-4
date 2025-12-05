@@ -1,0 +1,157 @@
+---
+title: Configuration
+description: Configure Aaron AI for your specific needs
+---
+
+## Basic Configuration
+
+Aaron AI offers flexible configuration options to adapt to your workflow. Start with the basic settings to get up and running quickly.
+
+<Callout kind="tip">Use the configuration dashboard for visual setup or API calls for programmatic configuration.</Callout>
+
+<Columns cols={2}>
+  <Card title="Dashboard Config" icon="settings" href="#dashboard">
+    Use the web interface for quick setup.
+  </Card>
+  <Card title="API Config" icon="code" href="#api">
+    Configure via REST API for automation.
+  </Card>
+</Columns>
+
+## Dashboard Configuration
+
+Access the configuration panel in your Aaron AI dashboard:
+
+<Steps>
+  <Step title="Login" icon="user">
+    Log into your Aaron AI account.
+  </Step>
+  <Step title="Navigate to Settings" icon="settings">
+    Click on Settings in the left sidebar.
+  </Step>
+  <Step title="Update Preferences" icon="edit">
+    Modify your workspace settings:
+    - Default document format
+    - Notification preferences
+    - Team member permissions
+  </Step>
+  <Step title="Save Changes" icon="save">
+    Click Save to apply your configuration.
+  </Step>
+</Steps>
+
+## API Configuration
+
+Configure Aaron AI programmatically using the REST API:
+
+<Tabs>
+  <Tab title="Workspace Settings" icon="settings">
+    Update workspace configuration:
+    ````javascript
+const config = await client.workspace.update({
+  name: 'My Documentation Space',
+  defaultFormat: 'markdown',
+  notifications: {
+    email: true,
+    slack: false
+  }
+});
+    ````
+  </Tab>
+  <Tab title="Team Management" icon="users">
+    Manage team members and permissions:
+    ````javascript
+// Add a team member
+const member = await client.team.add({
+  email: 'colleague@company.com',
+  role: 'editor'
+});
+
+// Update permissions
+const permissions = await client.team.updatePermissions(member.id, {
+  canEdit: true,
+  canDelete: false,
+  canInvite: true
+});
+    ````
+  </Tab>
+</Tabs>
+
+## Advanced Settings
+
+Fine-tune Aaron AI with advanced configuration options:
+
+<ExpandableGroup>
+  <Expandable title="Version Control" default-open="false">
+    Configure Git integration for version tracking:
+    ````json
+{
+  "versionControl": {
+    "enabled": true,
+    "repository": "https://github.com/company/docs",
+    "autoCommit": true
+  }
+}
+    ````
+  </Expandable>
+  <Expandable title="Custom Domains" default-open="false">
+    Set up custom domains for your documentation:
+    ````javascript
+const domain = await client.domains.add({
+  domain: 'docs.company.com',
+  ssl: true
+});
+    ````
+  </Expandable>
+  <Expandable title="Integrations" default-open="false">
+    Connect external tools:
+    - Slack notifications
+    - Jira issue tracking
+    - GitHub repositories
+  </Expandable>
+</ExpandableGroup>
+
+<Callout kind="info">Changes to advanced settings may require a workspace restart.</Callout>
+
+## Environment Variables
+
+Use environment variables for sensitive configuration:
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `AARON_API_KEY` | Your API key | Yes |
+| `AARON_BASE_URL` | API base URL | No |
+| `AARON_TIMEOUT` | Request timeout in seconds | No |
+
+<CodeGroup tabs=".env File,Shell Export">
+  ````bash
+# .env file
+AARON_API_KEY=your_key_here
+AARON_BASE_URL=https://api.aaron.ai/v1
+AARON_TIMEOUT=30
+  ````
+  ````bash
+export AARON_API_KEY=your_key_here
+export AARON_BASE_URL=https://api.aaron.ai/v1
+export AARON_TIMEOUT=30
+  ````
+</CodeGroup>
+
+## Troubleshooting Configuration
+
+Common configuration issues and solutions:
+
+- **Invalid API Key**: Verify the key in your dashboard
+- **Permission Denied**: Check team member roles
+- **Connection Timeout**: Adjust the timeout setting
+- **SSL Errors**: Ensure custom domains have valid certificates
+
+<Expandable title="Debug Mode" default-open="false">
+  Enable debug logging for detailed error information:
+  ````javascript
+const client = new AaronAIClient({
+  apiKey: process.env.AARON_API_KEY,
+  debug: true
+});
+  ````
+</Expandable>
